@@ -1,29 +1,40 @@
 namespace: todo-app
 
 frontend:
-  image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+  image:
+    repository: mehedib127/todo-frontend
+    tag: latest
+
   replicas: 2
   port: 80
   apiUrl: /api
+
   resources:
     requests:
       cpu: 50m
       memory: 64Mi
+
     limits:
       cpu: 250m
       memory: 128Mi
 
 backend:
-  image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+  image:
+    repository: mehedib127/todo-backend
+    tag: latest
+
   replicas: 2
   port: 8000
+
   resources:
     requests:
       cpu: 100m
       memory: 128Mi
+
     limits:
       cpu: 500m
       memory: 512Mi
+
   hpa:
     enabled: true
     minReplicas: 2
@@ -47,6 +58,7 @@ ingress:
   enabled: true
   className: traefik
   host: ""
+
   tls:
     enabled: false
     secretName: todo-tls
