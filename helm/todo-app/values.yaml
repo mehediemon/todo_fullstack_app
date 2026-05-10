@@ -1,7 +1,7 @@
 namespace: todo-app
 
 frontend:
-  image: mehedib127/todo-frontend:latest
+  image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
   replicas: 2
   port: 80
   apiUrl: /api
@@ -14,7 +14,7 @@ frontend:
       memory: 128Mi
 
 backend:
-  image: mehedib127/todo-backend:latest
+  image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
   replicas: 2
   port: 8000
   resources:
