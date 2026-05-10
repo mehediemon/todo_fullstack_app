@@ -3,7 +3,7 @@ namespace: todo-app
 frontend:
   image:
     repository: mehedib127/todo-frontend
-    tag: "bb6138c36d43686d656794e67292982c1d728550"
+    tag: "717c8c09bafbdc0d3d7a0f7454022d5ab512b34b"
 
   replicas: 2
   port: 80
@@ -21,7 +21,7 @@ frontend:
 backend:
   image:
     repository: mehedib127/todo-backend
-    tag: "bb6138c36d43686d656794e67292982c1d728550"
+    tag: "717c8c09bafbdc0d3d7a0f7454022d5ab512b34b"
 
   replicas: 2
   port: 8000
