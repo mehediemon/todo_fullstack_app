@@ -169,7 +169,7 @@ function App() {
     return (
       <main className="container">
         <section className="card auth-card">
-          <h1>Todo App argocd test</h1>
+          <h1>Todo App argocd RND</h1>
           <p className="muted">Login or create an account to manage your todos.</p>
 
           <div className="tabs">
