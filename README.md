@@ -1,32 +1,120 @@
-# Fullstack Todo App
+# Todo Fullstack App - DockerHub + Private k3s Deployment
 
-Simple Todo app with:
+This repository contains a React/Vite frontend, FastAPI backend, PostgreSQL, GitHub Actions Docker builds, and Kubernetes/Helm deployment files for a private k3s cluster.
 
-- Frontend: React + Vite
-- Backend: FastAPI
-- Database: PostgreSQL
-- Auth: JWT login/register
-- Docker + Docker Compose
+## Your deployment settings
 
-## Run with Docker
+- DockerHub user: `mehedib127`
+- Backend image: `mehedib127/todo-backend:latest`
+- Frontend image: `mehedib127/todo-frontend:latest`
+- k3s control-plane node: `192.168.68.106`
+- k3s worker node: `192.168.68.116`
+- Frontend exposed through Traefik ingress on `http://192.168.68.106`
+- Backend service remains private as `ClusterIP`
 
-```bash
-docker compose up --build
+## Important application routing
+
+The frontend must call the API using a relative URL:
+
+```js
+fetch("/api/...")
 ```
 
-Then open:
+The frontend Nginx config proxies `/api/` to the internal backend service:
 
-- Frontend: http://localhost:3000
-- Backend API docs: http://localhost:8000/docs
+```text
+http://todo-backend:8000/
+```
 
-## Default flow
+So the backend is not exposed directly outside the cluster.
 
-1. Register a user from the frontend.
-2. Login with the same email/password.
-3. Create, update, complete, and delete todos.
+## GitHub Actions secrets
 
-## Services
+In GitHub repository settings, add:
 
-- `frontend`: React app served by Nginx
-- `backend`: FastAPI app
-- `db`: PostgreSQL database
+| Secret | Value |
+|---|---|
+| `DOCKERHUB_USERNAME` | `mehedib127` |
+| `DOCKERHUB_TOKEN` | DockerHub access token |
+
+On push to `main`, GitHub Actions builds and pushes:
+
+- `mehedib127/todo-frontend:latest`
+- `mehedib127/todo-frontend:<git-sha>`
+- `mehedib127/todo-backend:latest`
+- `mehedib127/todo-backend:<git-sha>`
+
+## Deploy with Helm
+
+From your laptop, make sure your kubeconfig points to your k3s API server:
+
+```yaml
+server: https://192.168.68.106:6443
+```
+
+Then run:
+
+```bash
+cd helm/todo-app
+
+helm upgrade --install todo . \
+  --namespace todo-app \
+  --create-namespace
+```
+
+Open:
+
+```text
+http://192.168.68.106
+```
+
+## Deploy with plain manifests
+
+Alternative:
+
+```bash
+kubectl apply -f manifests/all.yaml
+```
+
+## Verify
+
+```bash
+kubectl get pods -n todo-app
+kubectl get svc -n todo-app
+kubectl get ingress -n todo-app
+kubectl get hpa -n todo-app
+```
+
+## HPA / metrics-server
+
+HPA requires metrics-server.
+
+Check:
+
+```bash
+kubectl top nodes
+```
+
+If it fails, install metrics-server:
+
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+```
+
+For k3s, if metrics still fails, patch metrics-server args:
+
+```bash
+kubectl patch deployment metrics-server -n kube-system --type='json' \
+  -p='[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+```
+
+## Update after new image push
+
+Because the chart uses the `latest` tag, restart workloads after GitHub Actions pushes new images:
+
+```bash
+kubectl rollout restart deployment todo-frontend -n todo-app
+kubectl rollout restart deployment todo-backend -n todo-app
+```
+
+Better production practice: deploy the immutable Git SHA tag instead of `latest`.

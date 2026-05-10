@@ -1,0 +1,52 @@
+namespace: todo-app
+
+frontend:
+  image: mehedib127/todo-frontend:latest
+  replicas: 2
+  port: 80
+  apiUrl: /api
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+
+backend:
+  image: mehedib127/todo-backend:latest
+  replicas: 2
+  port: 8000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    averageUtilization: 70
+
+postgres:
+  image: postgres:16-alpine
+  port: 5432
+  storage: 5Gi
+  database: todo_db
+  username: todo_user
+  password: todo_password
+
+appSecret:
+  secretKey: change-this-secret-key-use-a-long-random-value
+  algorithm: HS256
+  accessTokenExpireMinutes: "60"
+
+ingress:
+  enabled: true
+  className: traefik
+  host: ""
+  tls:
+    enabled: false
+    secretName: todo-tls

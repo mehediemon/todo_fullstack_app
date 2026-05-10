@@ -1,0 +1,6 @@
+apiVersion: v2
+name: todo-app
+description: Fullstack Todo app for private k3s with internal backend ClusterIP and public frontend ingress
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
